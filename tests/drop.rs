@@ -90,3 +90,39 @@ fn invalid_upgrade_cycled_chain() {
         weak_b.upgrade().unwrap();
     }
 }
+
+#[test]
+fn valid_upgrade_cycled_chain() {
+    let weak_b = {
+        let a = Ccrc::new(Test(RefCell::new(None)));
+        let b = Ccrc::new(Test(RefCell::new(Some(a.clone()))));
+        *a.0.borrow_mut() = Some(b.clone());
+        Ccrc::downgrade(&b)
+    };
+
+    let c = weak_b.upgrade().expect("Should still be cycled. Weak should be upgradable");
+    ccrc::collect_cycles();
+}
+
+#[test]
+fn invalid_and_valid_upgrade_cycled_chain() {
+    let weak_b = {
+        let a = Ccrc::new(Test(RefCell::new(None)));
+        let b = Ccrc::new(Test(RefCell::new(Some(a.clone()))));
+        *a.0.borrow_mut() = Some(b.clone());
+        Ccrc::downgrade(&b)
+    };
+    let weak_c = {
+        let c = weak_b.upgrade().expect("Should still be cycled. Weak should be upgradable");
+        ccrc::collect_cycles();
+        let d = c.clone();
+        Ccrc::downgrade(&c)
+    };
+
+    ccrc::collect_cycles();
+
+    match weak_c.upgrade() {
+        Some(_) => panic!("weak_c should not be upgradable"),
+        None => (),
+    }
+}
