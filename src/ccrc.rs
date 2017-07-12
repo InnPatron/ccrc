@@ -278,6 +278,7 @@ impl<T: Collectable> CcrcNodePtr for Ccrc<T> {
     }
 
     fn free(&self) {
+        assert_eq!(self.strong(), 0);
         unsafe {
             mem::drop(&(*self.ptr).value);
             self.dec_weak();

@@ -36,8 +36,6 @@ fn mark_roots() {
             } else {
                 root.set_buffered(false);
                 if root.color() == Color::Black && root.strong() == 0 {
-                    //no more strong refs -> strong refs lose implicit weak ref
-                    root.dec_weak();
                     root.free();
                 }
             }
