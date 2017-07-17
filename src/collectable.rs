@@ -1,4 +1,5 @@
 use super::ccrc::CcrcNodePtr;
+use std::cell::RefCell;
 
 pub type Tracer = Fn(&CcrcNodePtr);
 
@@ -99,5 +100,11 @@ impl Collectable for String {
 impl Collectable for str {
     fn trace(&self, tracer: &Tracer) {
      
+    }
+}
+
+impl<T: Collectable> Collectable for RefCell<T> {
+    fn trace(&self, tracer: &Tracer) {
+        Collectable::trace(&*self.borrow(), tracer);
     }
 }
